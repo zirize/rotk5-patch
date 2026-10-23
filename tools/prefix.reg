@@ -1,0 +1,8 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Control Panel\International]
+"Locale"="00000412"
+"LocaleName"="ko-KR"
+
+[HKEY_CURRENT_USER\Software\Wine\Fonts]
+"Codepages"="949,949"

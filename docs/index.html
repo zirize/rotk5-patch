@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>삼국지 V with 파워업키트 한글판 — 윈도우 10/11·Wine 실행 패치</title>
+<meta name="description" content="삼국지5 파워업키트 한글판(16비트 SAM5.EXE)을 윈도우10·윈11 64비트(otvdm)와 Linux Wine에서 무설치, CD 없이 실행하는 패치. 256색 오류, CD 음악, 동영상, 창 확대를 해결합니다. 게임 파일은 포함하지 않습니다." />
+<meta name="author" content="zirize" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://zirize.github.io/rotk5-patch/" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zirize.github.io/rotk5-patch/" />
+<meta property="og:title" content="삼국지 V with 파워업키트 한글판 — 윈도우 10/11·Wine 실행 패치" />
+<meta property="og:description" content="16비트 삼국지5 파워업키트 한글판을 윈도우 10/11과 Wine에서 CD 없이 실행합니다. 원본 EXE 수정 없음, 게임 파일 미포함." />
+<meta name="twitter:card" content="summary" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "inLanguage": "ko",
+  "headline": "삼국지 V with 파워업키트 한글판 — 윈도우 10/11·Wine 실행 패치",
+  "description": "삼국지5 파워업키트 한글판(16비트 SAM5.EXE)을 윈도우10·윈11 64비트(otvdm)와 Linux Wine에서 무설치, CD 없이 실행하는 패치. 256색 오류, CD 음악, 동영상, 창 확대를 해결합니다. 게임 파일은 포함하지 않습니다.",
+  "url": "https://zirize.github.io/rotk5-patch/",
+  "author": { "@type": "Person", "name": "zirize", "url": "https://github.com/zirize" },
+  "about": ["삼국지 V", "삼국지5", "파워업키트", "Romance of the Three Kingdoms V", "SAM5.EXE", "Win16", "otvdm", "winevdm", "Wine", "Windows 11", "Windows 10", "CD 없이", "무설치"]
+}
+</script>
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--border:#2d3148;--accent:#7c6af7;--accent2:#56c8a0;--text:#e2e4ef;--muted:#8b90b0;--radius:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:16px;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:linear-gradient(135deg,#1a1d27 0%,#12141e 100%);border-bottom:1px solid var(--border);padding:56px 20px 44px;text-align:center}
+header h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+header p{font-size:1.05rem;color:var(--muted);max-width:620px;margin:0 auto 22px}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btns a{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:.9rem;font-weight:500}
+.btns a:hover{text-decoration:none;border-color:var(--accent)}
+.btns a.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+main{max-width:820px;margin:0 auto;padding:48px 20px;flex:1}
+h2{font-size:1.35rem;margin:44px 0 14px;color:var(--text)}
+h2:first-child{margin-top:0}
+h3{font-size:1.05rem;margin:28px 0 10px;color:var(--accent2)}
+p{margin-bottom:14px;color:var(--text)}
+ul,ol{margin:0 0 16px 22px}
+li{margin-bottom:8px}
+code{font-family:ui-monospace,'Cascadia Code',Menlo,monospace;font-size:.88em;background:#12141e;border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+pre{background:#12141e;border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;margin-bottom:16px}
+pre code{background:none;border:none;padding:0;font-size:.85rem;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin-bottom:18px;font-size:.92rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.5px}
+.symptoms{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);border-radius:var(--radius);padding:20px 24px 8px;margin-bottom:8px}
+.note{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;font-size:.93rem;color:var(--muted)}
+.note strong{color:var(--text)}
+footer{text-align:center;padding:32px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>삼국지 V with 파워업키트 한글판 — 윈도우 10/11·Wine 실행 패치</h1>
+  <p>16비트 프로그램인 삼국지5 파워업키트 한글판을 64비트 윈도우와 Linux(Wine)에서 설치 없이, CD 없이 실행합니다. 원본 EXE는 고치지 않으며, 게임 파일은 들어 있지 않습니다.</p>
+  <div class="btns">
+    <a class="primary" href="https://github.com/zirize/rotk5-patch">GitHub 저장소</a>
+    <a href="https://github.com/zirize/rotk5-patch/releases">패치 받기 (Releases)</a>
+    <a href="https://github.com/zirize/rotk5-patch/blob/main/docs/sam5-internals.md">동작 원리</a>
+  </div>
+</header>
+<main>
+
+<p class="note">삼국지 IV도 있습니다 → <a href="https://zirize.github.io/rotk4-patch/">삼국지 IV with 파워업키트 한글판 — 윈도우 10/11·Wine 실행 패치</a></p>
+
+<h2>고치는 것</h2>
+<div class="symptoms">
+<ul>
+<li>64비트 윈도우에서 <strong>16비트 프로그램 <code>SAM5.EXE</code>가 아예 실행되지 않음</strong> → otvdm으로 실행합니다.</li>
+<li><strong>"256 컬러 디스플레이 드라이브를 사용해 주십시오"</strong> 오류 → 256색 화면으로 보고합니다.</li>
+<li>화면이 어두워졌다 밝아지는 장면 뒤에 <strong>배경이 그려지지 않음</strong> → 다시 그립니다.</li>
+<li><strong>"CD-ROM을 넣어 주십시오"</strong>, CD 음악 없음 → CD 이미지(BIN) 또는 MP3로 재생합니다.</li>
+<li>CD가 없으면 <strong>오프닝·엔딩 동영상</strong>이 안 나옴 → 게임 폴더의 <code>MOVIE</code>에서 재생합니다.</li>
+<li>640×480 <strong>작은 창</strong> → 메뉴 맨 왼쪽 "화면"에서 x1/x2/x3 정수배로 확대합니다.</li>
+</ul>
+</div>
+
+<h2>준비물</h2>
+<ol>
+<li>게임: <a href="https://nemo838.tistory.com/2565">nemo838.tistory.com/2565</a>의 <code>SAM5PKK_Win95_220129.7z.001</code> ~ <code>.032</code>와 <code>SAM5PKK_Win95_220129_Config.7z</code></li>
+<li>이 패치: <a href="https://github.com/zirize/rotk5-patch/releases">Releases</a>의 <code>rotk5-patch.zip</code> (<code>rotk5.exe</code>, <code>rotk5.dll</code>)</li>
+<li>윈도우만: <a href="https://github.com/otya128/winevdm/releases">otvdm v0.9.0</a></li>
+<li><a href="https://www.7-zip.org">7-Zip</a></li>
+</ol>
+
+<h2>설치와 실행</h2>
+<h3>윈도우 10/11</h3>
+<ol>
+<li><code>SAM5PKK_Win95_220129.7z.001</code>을 7-Zip으로 풉니다(나머지 조각은 자동으로 이어집니다). <code>_Config.7z</code>도 풉니다. 게임 폴더 <code>SAM5WPK</code>와 CD 이미지(<code>Audio.cue</code>, <code>Audio.bin</code>)가 나옵니다.</li>
+<li><code>SAM5WPK</code> 폴더를 쓰기 가능한 곳에 둡니다(예: <code>C:\Games\SAM5WPK</code>). <code>C:\Program Files</code> 아래는 저장이 안 됩니다.</li>
+<li><code>rotk5.exe</code>, <code>rotk5.dll</code>을 <code>SAM5WPK</code> 폴더에 넣습니다.</li>
+<li>otvdm zip을 풀어 폴더 이름을 <code>otvdm</code>으로 바꾸고 <code>SAM5WPK</code> 안에 넣습니다(<code>SAM5WPK\otvdm\otvdmw.exe</code>). otvdm 설치나 레지스트리 설정은 필요 없습니다.</li>
+<li>CD 음악: <code>SAM5WPK\CD</code> 폴더를 만들고 <code>Audio.cue</code>, <code>Audio.bin</code>을 복사합니다.</li>
+<li>동영상: <code>SAM5WPK\MOVIE</code> 폴더를 만들고 CD 이미지의 <code>OPEN.AVI</code>, <code>END.AVI</code>를 꺼내 넣습니다. Python이 있으면 <code>python tools\iso-extract.py &lt;CD 폴더&gt;\Audio.bin SAM5WPK\MOVIE</code>.</li>
+<li><code>rotk5.exe</code>를 실행합니다. <code>SAM5.EXE</code>를 직접 실행하면 안 됩니다.</li>
+</ol>
+
+<h3>Linux (Wine)</h3>
+<p>16비트 프로그램은 <strong>32비트 Wine prefix</strong>(<code>WINEARCH=win32</code>)에서만 실행됩니다. Ubuntu의 Wine 10이라면 <code>wine32</code> 패키지의 <code>/usr/bin/wine32</code>를 씁니다. otvdm은 필요 없습니다.</p>
+<pre><code>export WINEPREFIX=~/.wine-sam5 WINEARCH=win32 LANG=ko_KR.UTF-8
+wine32 wineboot -i
+wine32 regedit tools/prefix.reg      # 한국어 로캘, 코드페이지 949
+# 굴림 글꼴(gulim.ttc)을 $WINEPREFIX/drive_c/windows/Fonts/ 에 복사
+cd SAM5WPK                           # rotk5.exe, rotk5.dll, CD/, MOVIE/ 를 넣은 게임 폴더
+wine32 rotk5.exe</code></pre>
+
+<h3>설정</h3>
+<ul>
+<li>고른 창 배율은 게임 폴더의 <code>rotk5.ini</code>에 저장됩니다. 모니터에 들어가지 않는 배율은 회색으로 표시됩니다.</li>
+<li>오프닝 뒤에 묻는 "640×480 / 800×600"은 게임 화면 크기이며 창 배율과는 별개입니다.</li>
+<li>용량을 줄이려면 <code>tools/cd2mp3.sh</code>로 음악 트랙을 MP3로 바꿔 <code>Audio.bin</code> 대신 쓸 수 있습니다.</li>
+<li><code>rotk5.ini</code>에 <code>[debug]</code>와 <code>log=1</code>을 넣으면 <code>rotk5.log</code>에 동작 기록이 남습니다.</li>
+</ul>
+
+<h2>동작 원리</h2>
+<p><code>rotk5.exe</code>가 <code>SAM5.EXE</code>를 16비트 실행 환경(윈도우는 otvdm, Linux는 Wine의 winevdm) 위에서 멈춘 채로 시작하고, 그 프로세스에 <code>rotk5.dll</code>을 넣은 뒤 실행을 이어 갑니다. <code>rotk5.dll</code>은 Win32 API를 가로채 화면 색 수, WinG 팔레트 애니메이션, MCI CD 오디오, CD 드라이브 검사와 동영상 경로, 창 크기를 처리합니다. 자세한 내용은 <a href="https://github.com/zirize/rotk5-patch/blob/main/docs/sam5-internals.md">docs/sam5-internals.md</a>에 있습니다.</p>
+
+<h2>시험한 환경</h2>
+<ul>
+<li>Windows 11 64비트, otvdm v0.9.0: 실행, 오프닝 동영상(클릭으로 넘기기), CD 음악(MP3), 창 배율.</li>
+<li>Ubuntu 26.04 LTS, Wine 10.0(32비트 prefix, <code>wine32</code>): 실행, 게임 진행, CD 음악(BIN과 MP3), 효과음, 동영상, 창 배율.</li>
+<li>윈도우에서는 함께 묶은 배포본(MP3 음악, 동영상을 미리 꺼내 둔 상태)으로 시험했습니다. 위 순서대로 CD 이미지(BIN)를 그대로 넣는 음악 재생과 <code>iso-extract.py</code>로 동영상을 꺼내는 과정은 윈도우에서 시험하지 않았습니다(Wine에서는 시험).</li>
+<li>Windows 10은 시험하지 않았습니다.</li>
+</ul>
+
+<h2>라이선스</h2>
+<p>이 패치의 코드는 MIT 라이선스입니다. MP3 재생에 <a href="https://github.com/lieff/minimp3">minimp3</a>(CC0)를 씁니다. otvdm(GPL 2)은 저장소에 들어 있지 않습니다.</p>
+<div class="note"><strong>KOEI TECMO와 관계없는 개인 프로젝트입니다.</strong> 게임의 저작권은 KOEI TECMO에 있으며, 이 저장소는 게임 파일, CD 음악, 동영상을 배포하지 않습니다.</div>
+
+</main>
+<footer>
+  <p>Made by <a href="https://github.com/zirize">zirize</a> &middot; <a href="https://zirize.github.io/">More projects</a> &middot; <a href="https://github.com/zirize/rotk5-patch">GitHub</a></p>
+</footer>
+</body>
+</html>
