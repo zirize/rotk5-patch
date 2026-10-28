@@ -6,12 +6,6 @@
 설치 없이, CD 없이 실행하는 패치입니다. 원본 EXE는 고치지 않습니다.
 **게임 파일은 들어 있지 않습니다.** 삼국지 IV도 있습니다 → https://zirize.github.io/rotk4-patch/
 
-> ℹ️ **Windows Defender 오탐과 v1.1**: v1.0의 `rotk5.exe`는 게임을 멈춘 채로 시작해 `rotk5.dll`을
-> 다른 프로세스에 불러 넣는 방식이어서, Windows 11의 Microsoft Defender가
-> `Behavior:Win32/DefenseEvasion.A!ml` 또는 `Trojan:Win32/Wacatac.C!ml`로 탐지해 격리할 수 있었습니다.
-> v1.1부터 윈도우용 `rotk5.exe`는 다른 프로세스를 건드리지 않습니다. otvdm이 설정 파일(`otvdm.ini`의
-> `vm=`)에 적힌 DLL을 스스로 불러오게 하는 방식입니다. v1.0을 쓰고 있다면 v1.1로 바꿔 주세요.
-
 ## 1. 고치는 것
 
 - 64비트 윈도우에서는 16비트 프로그램인 `SAM5.EXE`가 아예 실행되지 않습니다 → otvdm으로 실행합니다.

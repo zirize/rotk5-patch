@@ -113,8 +113,8 @@ A Win16 EXE loads no 32-bit DLL by name, and Wine has no AppInit_DLLs.
   `SetDllDirectory(dll\)` drops the current directory from the search) and starts
   `otvdm\otvdmw.exe SAM5.EXE`. `rotk5.dll` exports the five vm86.dll entry points
   (`rotk5.def`) as jumps to the real `vm86.dll`, which it loads from otvdm's `dll\` (`vm.c`).
-  Nothing is written into another process: the old suspended start + remote `LoadLibraryA`
-  launcher was quarantined by Defender (`docs/testing.md`).
+  Nothing is written into another process (`docs/testing.md` has why the old suspended start +
+  remote `LoadLibraryA` launcher was dropped on Windows).
 - Wine (`wine-launcher.c` → `rotk5-wine.exe`; `rotk5.exe` starts it when `wine_get_version`
   exists): starts `SAM5.EXE` suspended (Wine's winevdm hosts it), loads `rotk5.dll` with a
   remote `LoadLibraryA`, then resumes. Not shipped in the Windows zip or dist 7z.

@@ -4,7 +4,7 @@
  * let it run. Wine's winevdm has no setting that loads a DLL for us (otvdm's
  * [otvdm] vm= does; see launcher.c), and nothing in a Win16 game loads a
  * 32-bit DLL by name, so a drop-in DLL like rotk4's ddraw.dll cannot work here.
- * Kept out of the Windows build: Defender flags this remote LoadLibrary start.
+ * Kept out of the Windows build, where launcher.c needs no remote LoadLibrary.
  */
 #include <windows.h>
 #include <stdio.h>
