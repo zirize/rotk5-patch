@@ -4,8 +4,8 @@
  * The game looks for its CD by asking DOS (int 21h AX=4408h, "is drive N
  * removable?") for every drive A..Z and then plays E:\OPEN.AVI-style paths
  * from the drive it found through MCI. Wine's and otvdm's krnl386 answer that
- * call with GetDriveType (Wine's krnl386.exe16 is already loaded when the shim
- * comes in, so its import table is patched as well). When the game directory has MOVIE\OPEN.AVI, Win16
+ * call with GetDriveType (krnl386.exe16 is already loaded when the shim comes
+ * in; util.c's hook_loaded_win16 patches its imports as well). When the game directory has MOVIE\OPEN.AVI, Win16
  * callers are told that one unused drive letter is a CD-ROM and every real
  * CD-ROM or removable drive is fixed, and paths on that letter are rewritten
  * to MOVIE\: in MCI_OPEN elements (cdaudio.c calls cdrom_map_element) and in
@@ -176,11 +176,7 @@ void cdrom_init(HMODULE kernel32)
         }
     if (!fake)
         return;
-    /* Wine's winevdm.exe has krnl386.exe16 loaded before us (otvdm loads it later). */
-    HMODULE krnl = GetModuleHandleA("krnl386.exe16");
-#define HOOK(f)                                                       \
-    real_##f = hook_export(kernel32, #f, hook_##f);                   \
-    hook_imports(krnl, (void *)real_##f, (void *)hook_##f)
+#define HOOK(f) real_##f = hook_export(kernel32, #f, hook_##f)
     HOOK(GetDriveTypeA);
     HOOK(GetDriveTypeW);
     HOOK(CreateFileA);

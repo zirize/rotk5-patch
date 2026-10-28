@@ -6,11 +6,11 @@
 설치 없이, CD 없이 실행하는 패치입니다. 원본 EXE는 고치지 않습니다.
 **게임 파일은 들어 있지 않습니다.** 삼국지 IV도 있습니다 → https://zirize.github.io/rotk4-patch/
 
-> ⚠️ **Windows Defender 오탐 (2026-10-24, 확인 중)**: Windows 11의 Microsoft Defender가 `rotk5.exe`를
-> `Behavior:Win32/DefenseEvasion.A!ml` 또는 `Trojan:Win32/Wacatac.C!ml`로 탐지해 격리할 수 있습니다.
-> `rotk5.exe`가 게임을 멈춘 채로 시작해 `rotk5.dll`을 게임 프로세스에 불러 넣는 실행기라서 생긴 판정으로
-> 보이며, Microsoft에 오탐 신고를 접수해 분석을 기다리고 있습니다. 소스는 모두 이 저장소에 있습니다.
-> 판정이 바뀌면 이 안내를 고치겠습니다.
+> ℹ️ **Windows Defender 오탐과 v1.1**: v1.0의 `rotk5.exe`는 게임을 멈춘 채로 시작해 `rotk5.dll`을
+> 다른 프로세스에 불러 넣는 방식이어서, Windows 11의 Microsoft Defender가
+> `Behavior:Win32/DefenseEvasion.A!ml` 또는 `Trojan:Win32/Wacatac.C!ml`로 탐지해 격리할 수 있었습니다.
+> v1.1부터 윈도우용 `rotk5.exe`는 다른 프로세스를 건드리지 않습니다. otvdm이 설정 파일(`otvdm.ini`의
+> `vm=`)에 적힌 DLL을 스스로 불러오게 하는 방식입니다. v1.0을 쓰고 있다면 v1.1로 바꿔 주세요.
 
 ## 1. 고치는 것
 
@@ -26,7 +26,7 @@
 1. 게임: https://nemo838.tistory.com/2565 의
    `SAM5PKK_Win95_220129.7z.001` ~ `.032`와 `SAM5PKK_Win95_220129_Config.7z`.
 2. 이 패치: [Releases](https://github.com/zirize/rotk5-patch/releases)의 `rotk5-patch.zip`
-   (`rotk5.exe`, `rotk5.dll`).
+   (윈도우용: `rotk5.exe`, `rotk5.dll`) 또는 `rotk5-patch-wine.zip`(Linux용: `rotk5-wine.exe`도 들어 있음).
 3. 윈도우만: otvdm v0.9.0 — https://github.com/otya128/winevdm/releases
 4. 7-Zip (https://www.7-zip.org).
 
@@ -58,7 +58,7 @@ export WINEPREFIX=~/.wine-sam5 WINEARCH=win32 LANG=ko_KR.UTF-8
 wine32 wineboot -i
 wine32 regedit tools/prefix.reg      # 한국어 로캘, 코드페이지 949
 # 굴림 글꼴(gulim.ttc)을 $WINEPREFIX/drive_c/windows/Fonts/ 에 복사
-cd SAM5WPK                           # rotk5.exe, rotk5.dll, CD/, MOVIE/ 를 넣은 게임 폴더
+cd SAM5WPK                           # rotk5.exe, rotk5-wine.exe, rotk5.dll, CD/, MOVIE/ 를 넣은 게임 폴더
 wine32 rotk5.exe
 ```
 
@@ -72,14 +72,17 @@ wine32 rotk5.exe
 - CD 이미지를 다른 곳에 두려면 `rotk5.ini`에 `[cdaudio]` 절과 `cue=<Audio.cue 경로>`를 적습니다.
 - 용량을 줄이려면 `tools/cd2mp3.sh`(bash, lame 필요)로 음악 트랙을 `TrackNN.mp3`로 바꿔
   `CD` 폴더에 `Audio.cue`와 함께 두고 `Audio.bin`은 빼도 됩니다.
-- 백신이 `rotk5.exe`나 `rotk5.dll`을 막으면 게임 폴더를 허용해 주세요. `rotk5.exe`는 게임을
-  시작하면서 `rotk5.dll`을 게임에 불러 넣는 실행기입니다.
+- `rotk5.exe`는 실행할 때마다 `otvdm\otvdm.ini`의 `vm=`을 게임 폴더의 `rotk5.dll`로 적습니다.
+  그래서 게임 폴더를 옮겨도 됩니다. otvdm 폴더를 다른 16비트 프로그램과 함께 쓰지는 마세요.
 - `rotk5.ini`에 `[debug]` 절과 `log=1`을 넣으면 `rotk5.log`에 동작 기록이 남습니다.
 
 ## 4. 동작 원리
 
-`rotk5.exe`가 `SAM5.EXE`를 16비트 실행 환경(윈도우는 otvdm, Linux는 Wine의 winevdm) 위에서
-멈춘 채로 시작하고, 그 프로세스에 `rotk5.dll`을 넣은 뒤 실행을 이어 갑니다. `rotk5.dll`은
+윈도우에서는 `rotk5.exe`가 `otvdm.ini`의 `vm=`(otvdm이 CPU 에뮬레이터 DLL을 고르는 설정)을
+`rotk5.dll`로 바꾸고 otvdm으로 `SAM5.EXE`를 실행합니다. otvdm이 `rotk5.dll`을 불러오면
+`rotk5.dll`은 에뮬레이터 호출을 otvdm의 `vm86.dll`로 그대로 넘깁니다. Wine의 winevdm에는 그런
+설정이 없어서, Linux에서는 `rotk5-wine.exe`가 `SAM5.EXE`를 멈춘 채로 시작하고 `rotk5.dll`을
+넣은 뒤 실행을 이어 갑니다(`rotk5.exe`를 실행하면 Wine에서는 이것을 부릅니다). `rotk5.dll`은
 그 프로세스의 Win32 API를 가로채 화면 색 수, WinG 팔레트 애니메이션, MCI CD 오디오, CD 드라이브
 검사와 동영상 경로, 창 크기를 처리합니다. 자세한 내용은
 [docs/sam5-internals.md](https://github.com/zirize/rotk5-patch/blob/main/docs/sam5-internals.md).

@@ -1,14 +1,16 @@
 /*
- * rotk5.exe: start SAM5.EXE (Win16; Wine's winevdm or otvdm hosts it) from the
- * launcher's own directory, suspended, load rotk5.dll into that process, then
- * let it run. 64-bit Windows cannot start a Win16 EXE itself, so when
- * otvdm\otvdmw.exe is in the game directory the game is run through it (no
- * otvdm install or registry change needed; under Wine it is skipped). Nothing in a Win16 game loads a
- * 32-bit DLL by name, so a drop-in DLL like rotk4's ddraw.dll cannot work here.
+ * rotk5.exe: start SAM5.EXE with the shim. 64-bit Windows cannot start a Win16
+ * EXE itself, so the game runs through otvdm\otvdmw.exe in the game directory
+ * (no otvdm install or registry change needed). otvdm loads its CPU emulator
+ * DLL by the name in otvdm\otvdm.ini [otvdm] vm=; that is set to this
+ * directory's rotk5.dll (rewritten on every start, so the folder can move),
+ * which installs the hooks and passes the emulator calls on to otvdm's own
+ * vm86.dll (vm.c). Nothing is written into another process.
+ * Under Wine, whose winevdm has no such setting, rotk5-wine.exe is started
+ * instead (wine-launcher.c).
  */
 #include <windows.h>
 #include <stdio.h>
-#include <string.h>
 
 static int fail(const char *what)
 {
@@ -21,44 +23,29 @@ static int fail(const char *what)
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmd, int show)
 {
     (void)inst; (void)prev; (void)cmd; (void)show;
-    char dir[MAX_PATH], dll[MAX_PATH + 16], exe[2 * MAX_PATH + 48];
+    char dir[MAX_PATH], dll[MAX_PATH + 16], ini[MAX_PATH + 32], exe[2 * MAX_PATH + 48];
     DWORD n = GetModuleFileNameA(NULL, dir, sizeof dir);
     while (n && dir[n - 1] != '\\')
         n--;
     dir[n ? n - 1 : 0] = 0;
-    snprintf(dll, sizeof dll, "%s\\rotk5.dll", dir);
-    char otvdm[MAX_PATH + 32];
-    snprintf(otvdm, sizeof otvdm, "%s\\otvdm\\otvdmw.exe", dir);
-    /* Under Wine its own winevdm runs Win16 programs; otvdm is for Windows. */
+
     BOOL wine = GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version") != NULL;
-    if (!wine && GetFileAttributesA(otvdm) != INVALID_FILE_ATTRIBUTES)
-        snprintf(exe, sizeof exe, "\"%s\" \"%s\\SAM5.EXE\"", otvdm, dir);
-    else
-        snprintf(exe, sizeof exe, "\"%s\\SAM5.EXE\"", dir);
+    if (wine)
+        snprintf(exe, sizeof exe, "\"%s\\rotk5-wine.exe\"", dir);
+    else {
+        snprintf(dll, sizeof dll, "%s\\rotk5.dll", dir);
+        snprintf(ini, sizeof ini, "%s\\otvdm\\otvdm.ini", dir);
+        snprintf(exe, sizeof exe, "\"%s\\otvdm\\otvdmw.exe\" \"%s\\SAM5.EXE\"", dir, dir);
+        if (GetFileAttributesA(dll) == INVALID_FILE_ATTRIBUTES)
+            return fail("rotk5.dll이 없습니다");
+        if (!WritePrivateProfileStringA("otvdm", "vm", dll, ini))
+            return fail("otvdm\\otvdm.ini에 쓸 수 없습니다 (otvdm 폴더를 확인해 주세요)");
+    }
 
     STARTUPINFOA si = { .cb = sizeof si };
     PROCESS_INFORMATION pi;
-    if (!CreateProcessA(NULL, exe, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, dir, &si, &pi))
-        return fail("SAM5.EXE를 실행할 수 없습니다");
-
-    size_t len = strlen(dll) + 1;
-    void *mem = VirtualAllocEx(pi.hProcess, NULL, len, MEM_COMMIT, PAGE_READWRITE);
-    HANDLE th = NULL;
-    if (mem && WriteProcessMemory(pi.hProcess, mem, dll, len, NULL))
-        th = CreateRemoteThread(pi.hProcess, NULL, 0,
-            (LPTHREAD_START_ROUTINE)(void *)GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA"),
-            mem, 0, NULL);
-    DWORD loaded = 0;
-    if (th) {
-        WaitForSingleObject(th, INFINITE);
-        GetExitCodeThread(th, &loaded);
-        CloseHandle(th);
-    }
-    if (!loaded) {
-        TerminateProcess(pi.hProcess, 1);
-        return fail("rotk5.dll을 불러올 수 없습니다");
-    }
-    ResumeThread(pi.hThread);
+    if (!CreateProcessA(NULL, exe, NULL, NULL, FALSE, 0, NULL, dir, &si, &pi))
+        return fail(wine ? "rotk5-wine.exe를 실행할 수 없습니다" : "otvdm으로 SAM5.EXE를 실행할 수 없습니다");
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
     return 0;

@@ -1,0 +1,7 @@
+LIBRARY rotk5.dll
+EXPORTS
+	disassemble_debug
+	init_vm86
+	load_x87function
+	wine_call_to_16_regs_vm86
+	wine_call_to_16_vm86

@@ -4,14 +4,20 @@
  * The Win16 layer (Wine's gdi.exe16, user.exe16, wing.dll16 …, otvdm's
  * equivalents) is a set of 32-bit DLLs loaded after this one, so patching the
  * export table of gdi32/winmm makes those modules bind to our functions when
- * they resolve their imports. Modules already loaded keep the real functions
- * unless their import table is patched too (hook_imports, needed for Wine's
- * krnl386.exe16, which winevdm.exe loads before the shim). Each hook also
- * checks its caller, so only the Win16 layer is affected.
+ * they resolve their imports. Win16 modules already loaded when the shim
+ * comes in (Wine's winevdm.exe loads krnl386.exe16 first; otvdm, which loads
+ * the shim as its vm DLL, has krnl386.exe16 and the first drivers in) keep the
+ * real functions unless their import tables are patched too
+ * (hook_loaded_win16). Each hook also checks its caller, so only the Win16
+ * layer is affected.
  */
 #include "shim.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <tlhelp32.h>
+
+static struct { void *real, *hook; } hooked[64]; /* every hook_export, for hook_loaded_win16 */
+static int nhooked;
 
 static char log_path[MAX_PATH + 16];
 
@@ -74,6 +80,10 @@ void *hook_export(HMODULE mod, const char *name, void *hook)
         VirtualProtect(slot, sizeof *slot, PAGE_READWRITE, &old);
         *slot = (DWORD)((BYTE *)hook - base); /* wraps mod 2^32, fine on 32-bit */
         VirtualProtect(slot, sizeof *slot, old, &old);
+        if (nhooked < (int)(sizeof hooked / sizeof *hooked))
+            hooked[nhooked].real = orig, hooked[nhooked++].hook = hook;
+        else
+            shim_log("too many hooks; %s not patched in loaded modules", name);
         return orig;
     }
     shim_log("export %s not found", name);
@@ -98,4 +108,22 @@ void hook_imports(HMODULE mod, void *real, void *hook)
                 t->u1.Function = (DWORD_PTR)hook;
                 VirtualProtect(&t->u1.Function, sizeof t->u1.Function, old, &old);
             }
+}
+
+/* Point the imports of every Win16 module already loaded (*16) at the hooks. */
+void hook_loaded_win16(void)
+{
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
+    if (snap == INVALID_HANDLE_VALUE)
+        return;
+    MODULEENTRY32 me = { .dwSize = sizeof me };
+    for (BOOL ok = Module32First(snap, &me); ok; ok = Module32Next(snap, &me)) {
+        size_t n = strlen(me.szModule);
+        if (n < 3 || me.szModule[n - 2] != '1' || me.szModule[n - 1] != '6')
+            continue;
+        for (int i = 0; i < nhooked; i++)
+            hook_imports(me.hModule, hooked[i].real, hooked[i].hook);
+        shim_log("imports patched in loaded %s", me.szModule);
+    }
+    CloseHandle(snap);
 }

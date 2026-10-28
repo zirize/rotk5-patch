@@ -10,6 +10,10 @@ void shim_log_init(void);
 void shim_log(const char *fmt, ...);
 void *hook_export(HMODULE mod, const char *name, void *hook);
 void hook_imports(HMODULE mod, void *real, void *hook);
+void hook_loaded_win16(void); /* after all hook_export calls */
+
+/* vm.c: otvdm loads the shim as its CPU emulator DLL; pass that on to vm86.dll */
+void vm_init(void);
 
 /* caps.c: is `addr` in one of the Win16 thunk modules (*.exe16, *.dll16, *.drv16)? */
 BOOL from_win16(void *addr);

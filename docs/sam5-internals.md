@@ -104,11 +104,23 @@ area. Model: rotk4's `scale.c`.
 
 ## Injection
 
-A Win16 EXE loads no 32-bit DLL by name, and Wine has no AppInit_DLLs, so `rotk5.exe`
-starts `SAM5.EXE` suspended (the process is winevdm/otvdm), loads `rotk5.dll` with a remote
-`LoadLibraryA`, then resumes. On Windows it starts `otvdm\otvdmw.exe SAM5.EXE`; under Wine
-(`wine_get_version` present) it starts `SAM5.EXE` and Wine's winevdm hosts it. The DLL
-patches export tables of gdi32, user32, winmm and kernel32, so the Win16 layer, loaded later,
-binds to the hooks (`util.c`); krnl386.exe16, which winevdm.exe loads before the shim, gets
-its import table patched (`hook_imports`). Hooks check the caller's module name (`*16`) so
-the hosts' own 32-bit code is unaffected.
+A Win16 EXE loads no 32-bit DLL by name, and Wine has no AppInit_DLLs.
+
+- Windows (`launcher.c`): otvdm's krnl386 (and its system.drv, win87em) loads the CPU emulator
+  DLL named by `otvdm\otvdm.ini` `[otvdm] vm=` (default `vm86.dll`; `kernel.c` of otvdm's krnl386)
+  with `LoadLibraryA`, after krnl386 itself and system/comm/timer.drv are in, before
+  gdi/user. `rotk5.exe` writes `vm=<game dir>\rotk5.dll` (absolute: otvdm's
+  `SetDllDirectory(dll\)` drops the current directory from the search) and starts
+  `otvdm\otvdmw.exe SAM5.EXE`. `rotk5.dll` exports the five vm86.dll entry points
+  (`rotk5.def`) as jumps to the real `vm86.dll`, which it loads from otvdm's `dll\` (`vm.c`).
+  Nothing is written into another process: the old suspended start + remote `LoadLibraryA`
+  launcher was quarantined by Defender (`docs/testing.md`).
+- Wine (`wine-launcher.c` → `rotk5-wine.exe`; `rotk5.exe` starts it when `wine_get_version`
+  exists): starts `SAM5.EXE` suspended (Wine's winevdm hosts it), loads `rotk5.dll` with a
+  remote `LoadLibraryA`, then resumes. Not shipped in the Windows zip or dist 7z.
+
+The DLL patches export tables of gdi32, user32, winmm and kernel32, so the Win16 layer, loaded
+later, binds to the hooks (`util.c`); the `*16` modules already loaded (krnl386.exe16 under
+both hosts, plus system/comm/timer.drv16) get their import tables patched
+(`hook_loaded_win16`). Hooks check the caller's module name (`*16`) so the hosts' own 32-bit
+code is unaffected.
