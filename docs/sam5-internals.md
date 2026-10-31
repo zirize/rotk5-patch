@@ -50,7 +50,10 @@ SearchPathA/CreateFile in krnl386) before MCI opens it. A missing file gives "ì‹
 Shim fix (`cdrom.c`): when `MOVIE\OPEN.AVI` exists in the game directory, Win16 callers see
 the first unused letter from D: as a CD-ROM and real CD/removable drives as fixed; paths on
 that letter in CreateFile, GetFileAttributes, SearchPath, FindFirstFile, OpenFile (A/W) and in
-MCI_OPEN elements are rewritten to `MOVIE\`. Wine's winevdm.exe loads krnl386.exe16 before
+MCI_OPEN elements are rewritten to `MOVIE\`, or to the game directory when the name is only
+there; a name ending in `_` found nowhere maps to the game file without the `_` (a
+user-modified EXE checks `X:\kaowpk.s5_` instead of `OPEN.AVI`; the game dir has only
+`KAOWPK.S5`). Wine's winevdm.exe loads krnl386.exe16 before
 the shim, so its import table is patched too (`hook_imports`); otvdm loads it later.
 
 ## Opening movie

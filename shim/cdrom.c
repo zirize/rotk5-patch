@@ -10,14 +10,18 @@
  * CD-ROM or removable drive is fixed, and paths on that letter are rewritten
  * to MOVIE\: in MCI_OPEN elements (cdaudio.c calls cdrom_map_element) and in
  * the file calls the Win16 layer makes (the game checks D:\OPEN.AVI with
- * OpenFile first, which krnl386 turns into SearchPath/CreateFile). Without
- * MOVIE\ nothing changes and the game uses a real (or mounted) CD.
+ * OpenFile first, which krnl386 turns into SearchPath/CreateFile). A name that
+ * is not in MOVIE\ but is in the game directory maps there instead, and a
+ * name ending in '_' found nowhere falls back to the game file without it:
+ * a user-modified EXE checks D:\kaowpk.s5_ (→ KAOWPK.S5). Without MOVIE\
+ * nothing changes and the game uses a real (or mounted) CD.
  */
 #include "shim.h"
 #include <stdio.h>
 
 static char fake;                 /* the drive letter, 0 when off */
-static char movie_dir[MAX_PATH + 16]; /* game dir\MOVIE\ */
+static char game_dir[MAX_PATH + 16];  /* game dir\ */
+static char movie_dir[sizeof game_dir + 8]; /* game dir\MOVIE\ */
 static UINT (WINAPI *real_GetDriveTypeA)(LPCSTR);
 static UINT (WINAPI *real_GetDriveTypeW)(LPCWSTR);
 static HANDLE (WINAPI *real_CreateFileA)(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
@@ -55,7 +59,8 @@ static UINT WINAPI hook_GetDriveTypeW(LPCWSTR root)
     return t;
 }
 
-/* Path on the fake drive → MOVIE\ path in `out`; otherwise `in` itself. */
+/* Path on the fake drive → MOVIE\ path in `out` (game dir path when only that
+ * exists, also without a trailing '_'); otherwise `in` itself. */
 static const char *map_a(const char *in, char *out, size_t n)
 {
     if (!fake || !in || (in[0] & ~32) != fake || in[1] != ':')
@@ -64,6 +69,15 @@ static const char *map_a(const char *in, char *out, size_t n)
     while (*rest == '\\' || *rest == '/')
         rest++;
     snprintf(out, n, "%s%s", movie_dir, rest);
+    DWORD (WINAPI *attr)(LPCSTR) = real_GetFileAttributesA ? real_GetFileAttributesA : GetFileAttributesA;
+    if (*rest && attr(out) == INVALID_FILE_ATTRIBUTES) {
+        char alt[MAX_PATH * 2];
+        size_t len = (size_t)snprintf(alt, sizeof alt, "%s%s", game_dir, rest);
+        if (attr(alt) == INVALID_FILE_ATTRIBUTES && len < sizeof alt && alt[len - 1] == '_')
+            alt[len - 1] = 0; /* kaowpk.s5_ → KAOWPK.S5 */
+        if (attr(alt) != INVALID_FILE_ATTRIBUTES)
+            lstrcpynA(out, alt, (int)n);
+    }
     return out;
 }
 
@@ -165,7 +179,8 @@ void cdrom_init(HMODULE kernel32)
     DWORD n = GetCurrentDirectoryA(sizeof dir, dir), drives = GetLogicalDrives();
     if (!n || n >= sizeof dir - 16)
         return;
-    snprintf(movie_dir, sizeof movie_dir, "%s%sMOVIE\\", dir, dir[n - 1] == '\\' ? "" : "\\");
+    snprintf(game_dir, sizeof game_dir, "%s%s", dir, dir[n - 1] == '\\' ? "" : "\\");
+    snprintf(movie_dir, sizeof movie_dir, "%sMOVIE\\", game_dir);
     snprintf(test, sizeof test, "%sOPEN.AVI", movie_dir);
     if (GetFileAttributesA(test) == INVALID_FILE_ATTRIBUTES)
         return;

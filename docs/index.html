@@ -80,6 +80,7 @@ footer{text-align:center;padding:32px 20px;border-top:1px solid var(--border);co
 <li><strong>"CD-ROM을 넣어 주십시오"</strong>, CD 음악 없음 → CD 이미지(BIN) 또는 MP3로 재생합니다.</li>
 <li>CD가 없으면 <strong>오프닝·엔딩 동영상</strong>이 안 나옴 → 게임 폴더의 <code>MOVIE</code>에서 재생합니다.</li>
 <li>640×480 <strong>작은 창</strong> → 메뉴 맨 왼쪽 "화면"에서 x1/x2/x3 정수배로 확대합니다.</li>
+<li>데이터를 고친 <strong>개조판 <code>SAM5.EXE</code></strong>(노CD판 등)도 그대로 씁니다. 개조판이 CD에서 다른 파일을 찾으면 게임 폴더의 파일로 대신합니다.</li>
 </ul>
 </div>
 
@@ -128,6 +129,7 @@ wine32 rotk5.exe</code></pre>
 <li>Windows 11 64비트, otvdm v0.9.0: 실행, 오프닝 동영상(클릭으로 넘기기), CD 음악(MP3), 창 배율.</li>
 <li>Ubuntu 26.04 LTS, Wine 10.0(32비트 prefix, <code>wine32</code>): 실행, 게임 진행, CD 음악(BIN과 MP3), 효과음, 동영상, 창 배율.</li>
 <li>윈도우에서는 함께 묶은 배포본(MP3 음악, 동영상을 미리 꺼내 둔 상태)으로 시험했습니다. 위 순서대로 CD 이미지(BIN)를 그대로 넣는 음악 재생과 <code>iso-extract.py</code>로 동영상을 꺼내는 과정은 윈도우에서 시험하지 않았습니다(Wine에서는 시험).</li>
+<li>개조판(노CD) <code>SAM5.EXE</code>는 Wine에서만 시험했습니다(윈도우에서는 시험하지 않음).</li>
 <li>Windows 10은 시험하지 않았습니다.</li>
 </ul>
 
